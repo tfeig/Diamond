@@ -50,4 +50,9 @@ class FileAgeCollector(diamond.collector.Collector):
         return time.time() - os.stat(path)[stat.ST_MTIME]
 
     def get_metric_key(self, path):
-        return os.path.join("fileage", path).replace('/', '.')
+        key = 'fileage'
+        if path.startswith('/'):
+            key += path
+        else:
+            key += '.' + path
+        return key.replace('/', '.')
