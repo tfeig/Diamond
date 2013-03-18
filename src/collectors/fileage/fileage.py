@@ -16,6 +16,7 @@ class FileAgeCollector(diamond.collector.Collector):
     def get_default_config_help(self):
         config_help = super(FileAgeCollector, self).get_default_config_help()
         config_help.update({
+            'path': 'fileage',
             'paths': "A %s separated list of files or directory to monitor." % os.pathsep,
         })
         return config_help
@@ -50,9 +51,8 @@ class FileAgeCollector(diamond.collector.Collector):
         return time.time() - os.stat(path)[stat.ST_MTIME]
 
     def get_metric_key(self, path):
-        key = 'fileage'
         if path.startswith('/'):
-            key += path
+            key = path[1:]
         else:
-            key += '.' + path
+            key = path
         return key.replace('/', '.')
