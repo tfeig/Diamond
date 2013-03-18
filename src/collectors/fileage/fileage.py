@@ -16,7 +16,6 @@ class FileAgeCollector(diamond.collector.Collector):
     def get_default_config_help(self):
         config_help = super(FileAgeCollector, self).get_default_config_help()
         config_help.update({
-            'path': 'fileage',
             'paths': "A %s separated list of files or directory to monitor." % os.pathsep,
         })
         return config_help
@@ -28,6 +27,7 @@ class FileAgeCollector(diamond.collector.Collector):
         config = super(FileAgeCollector, self).get_default_config()
         config.update({
             'enabled':  'False',
+            'path': 'fileage',
         })
         return config
 
