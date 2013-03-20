@@ -187,6 +187,8 @@ class DiskSpaceCollector(diamond.collector.Collector):
         for key, info in self.get_file_systems().iteritems():
             if info['device'] in labels:
                 name = labels[info['device']]
+		# To equilize the pattern of the outgoing mount names getting from label with the result from /proc/mount
+                name = "_" + name
             else:
                 name = info['mount_point'].replace('/', '_')
                 name = name.replace('.', '_')
