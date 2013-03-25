@@ -227,6 +227,9 @@ class Collector(object):
 
             # Collect the collector run time in ms
             'measure_collector_time': False,
+            
+            # Use an average for all total values
+            'use_cpu_average': False,
         }
 
     def get_stats_for_upload(self, config=None):

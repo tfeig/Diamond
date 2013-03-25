@@ -55,6 +55,7 @@ class CPUCollector(diamond.collector.Collector):
             'percore':  'True',
             'xenfix':   None,
             'simple':   'False',
+            'use_cpu_average': 'False',
         })
         return config
 
@@ -97,6 +98,8 @@ class CPUCollector(diamond.collector.Collector):
             results = {}
             # Open file
             file = open(self.PROC)
+            # Start point for adding all cpu cores
+            core_sum = 0
 
             for line in file:
                 if not line.startswith('cpu'):
@@ -105,6 +108,10 @@ class CPUCollector(diamond.collector.Collector):
                 elements = line.split()
 
                 cpu = elements[0]
+                
+                # Count cpu cores here
+                if cpu != "cpu":
+                    core_sum += 1
 
                 if cpu == 'cpu':
                     cpu = 'total'
@@ -141,13 +148,20 @@ class CPUCollector(diamond.collector.Collector):
 
             for cpu in results.keys():
                 stats = results[cpu]
+
+                # Factor for division is 1 by default for no average values  
+                cpu_factor = 1
+                if cpu == "total" and self.config['use_cpu_average'] == 'True' and core_sum > 0:
+                    self.log.debug("CPUCollector: Using average sum (total / %i cores) for all total results", core_sum)  
+                    cpu_factor = core_sum 
+                    
                 for s in stats.keys():
                     # Get Metric Name
                     metric_name = '.'.join([cpu, s])
-                    # Get actual data
+                    # Get actual data 
                     metrics[metric_name] = self.derivative(metric_name,
-                                                         long(stats[s]),
-                                                         self.MAX_VALUES[s])
+                                                           long(stats[s]) / cpu_factor,
+                                                           self.MAX_VALUES[s])
 
             # Check for a bug in xen where the idle time is doubled for guest
             # See https://bugzilla.redhat.com/show_bug.cgi?id=624756
@@ -194,23 +208,29 @@ class CPUCollector(diamond.collector.Collector):
                              self.derivative(metric_name + '.idle',
                                              cpu_time[i].idle,
                                              self.MAX_VALUES['idle']))
-
+                        
+            # Factor for division is 1 by default for no average values
+            cpu_factor = 1    
+            if self.config['use_cpu_average'] == 'True':
+                self.log.debug("CPUCollector: Using average values (total / %i cores) for all total results", len(cpu_time))
+                cpu_factor=len(cpu_time)
+                               
             metric_name = 'total'
             self.publish(metric_name + '.user',
                          self.derivative(metric_name + '.user',
-                                         total_time.user,
+                                         total_time.user / cpu_factor,
                                          self.MAX_VALUES['user']))
             self.publish(metric_name + '.nice',
                          self.derivative(metric_name + '.nice',
-                                         total_time.nice,
+                                         total_time.nice / cpu_factor,
                                          self.MAX_VALUES['nice']))
             self.publish(metric_name + '.system',
                          self.derivative(metric_name + '.system',
-                                         total_time.system,
+                                         total_time.system  / cpu_factor,
                                          self.MAX_VALUES['system']))
             self.publish(metric_name + '.idle',
                          self.derivative(metric_name + '.idle',
-                                         total_time.idle,
+                                         total_time.idle  / cpu_factor,
                                          self.MAX_VALUES['idle']))
 
             return True
