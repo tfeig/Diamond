@@ -1,0 +1,4 @@
+2013-08-19 00:01:00,000 INFO  Some information
+2013-08-19 00:01:00,740 INFO  Some other information
+2013-08-19 00:05:00,001 INFO  Another information
+2013-08-19 00:05:00,050 INFO  and so on
